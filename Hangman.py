@@ -434,7 +434,7 @@ def main_game_func(menu_choice,settings,target):
                 break
             time.sleep(1)
 
-        ###################################################################################################
+        ####################################################################################################
 
         if multiplayer != 2: #multiplayer == 2 --->stop game!
             total_used_char.append(given_char)
