@@ -357,33 +357,40 @@ def main_game_func(menu_choice,settings,target):
 
         #####################  SINGLEPLAYER  ################################
 
-        # if menu_choice != 5 and menu_choice != 6:
-        #     import multiprocessing
-        #     char_queue = multiprocessing.Queue(maxsize=5)  # ftiaxnw oura
-        #
-        # #h eisagogi xaraktira ginetai me parallili epexergasia me thread oste na mporoyn
-        # # na prosthethoyn mellontika
-        # #leitoyrgies opos px xronometrisi kai time limit.
-        #
-        # create_process = True  # flag gia na xekinisei process MONO stin proti ektelesi tis loopas
-        # import time  # TEMPORARY?
-        # while True:
-        #     if create_process == True:
-        #         ##to bug poy emfanizei pali to menu prokaleitai kapws edw!
-        #         print("DIAG: Initializing char_entry_func parallel process!...")
-        #
-        #         from threading import Thread
-        #         char_input_thread = Thread(target=char_entry_func, args=(char_queue, total_used_char))
-        #         char_input_thread.start()
-        #
-        #         create_process = False
-        #
-        #     if not char_queue.empty():
-        #         # char_input_thread.exit()
-        #         print("EFTASA 4")
-        #         print("H OYRA EXEI XARAKTIRA STI LOOPA")
-        #         given_char = char_queue.get()  ##pairnw ton char poy edwse o user
-        #         break
+        if menu_choice != 5 and menu_choice != 6:
+            import multiprocessing
+            char_queue = multiprocessing.Queue(maxsize=5)  # ftiaxnw oura
+
+            #h eisagogi xaraktira ginetai me parallili epexergasia me thread oste na mporoyn
+            # na prosthethoyn mellontika
+            #leitoyrgies opos px xronometrisi kai time limit.
+
+            create_process = True  # flag gia na xekinisei process MONO stin proti ektelesi tis loopas
+            import time  # TEMPORARY?
+            while True:
+
+                import sys
+
+                if create_process == True:
+                    print("DIAG: Initializing char_entry_func parallel process!...")
+
+                    import sys
+                    fn = sys.stdin.fileno()  # get original file descriptor
+                    print("DIAG: fn is: ",fn)
+                    import multiprocessing
+                    char_input_process = multiprocessing.Process(target=char_entry_func, args=(char_queue,total_used_char,fn))
+                    char_input_process.start()
+
+                    create_process = False
+
+                if not char_queue.empty():
+                    #char_input_thread.exit()
+                    print("EFTASA 4")
+                    print("H OYRA EXEI XARAKTIRA STI LOOPA")
+                    given_char = char_queue.get()  ##pairnw ton char poy edwse o user
+                    char_input_process.terminate()
+                    break
+                time.sleep(1)
 
         #####################  MULTIPLAYER  ################################
 
@@ -392,47 +399,43 @@ def main_game_func(menu_choice,settings,target):
             import multiprocessing
             char_queue =multiprocessing.Queue(maxsize=5) #ftiaxnw oura
 
-        create_process = True #flag gia na xekinisei process MONO stin proti ektelesi tis loopas
-        import time #TEMPORARY?
+            create_process = True #flag gia na xekinisei process MONO stin proti ektelesi tis loopas
+            import time #TEMPORARY?
 
-        #######################################################################################################
-        while True:
+            #######################################################################################################
+            while True:
 
-            import sys
-
-            if create_process == True:
-                ##to bug poy emfanizei pali to menu prokaleitai kapws edw!
-                print("DIAG: Initializing char_entry_func parallel process!...")
-
-                # from threading import Thread
-                # char_input_thread = Thread(target=char_entry_func, args=(char_queue,total_used_char))
-                # char_input_thread.start()
                 import sys
-                fn = sys.stdin.fileno()  # get original file descriptor
-                print("DIAG: fn is: ",fn)
-                import multiprocessing
-                char_input_process = multiprocessing.Process(target=char_entry_func, args=(char_queue,total_used_char,fn))
-                char_input_process.start()
 
-                create_process = False
+                if create_process == True:
+                    print("DIAG: Initializing char_entry_func parallel process!...")
 
-            ## elegxw gia niki apo allon client
-            received_msg = client_win_check_func()
-            if received_msg == "end_game":
-                print("EFTASA 3")
-                print("DIAG: end_game STI LOOPA")
-                multiplayer = 2 #stop game
-                char_input_process.terminate()
-                break
+                    import sys
+                    fn = sys.stdin.fileno()  # get original file descriptor
+                    print("DIAG: fn is: ",fn)
+                    import multiprocessing
+                    char_input_process = multiprocessing.Process(target=char_entry_func, args=(char_queue,total_used_char,fn))
+                    char_input_process.start()
 
-            if not char_queue.empty():
-                #char_input_thread.exit()
-                print("EFTASA 4")
-                print("H OYRA EXEI XARAKTIRA STI LOOPA")
-                given_char = char_queue.get()  ##pairnw ton char poy edwse o user
-                char_input_process.terminate()
-                break
-            time.sleep(1)
+                    create_process = False
+
+                ## elegxw gia niki apo allon client
+                received_msg = client_win_check_func()
+                if received_msg == "end_game":
+                    print("EFTASA 3")
+                    print("DIAG: end_game STI LOOPA")
+                    multiplayer = 2 #stop game
+                    char_input_process.terminate()
+                    break
+
+                if not char_queue.empty():
+                    #char_input_thread.exit()
+                    print("EFTASA 4")
+                    print("H OYRA EXEI XARAKTIRA STI LOOPA")
+                    given_char = char_queue.get()  ##pairnw ton char poy edwse o user
+                    char_input_process.terminate()
+                    break
+                time.sleep(1)
 
         ####################################################################################################
 
