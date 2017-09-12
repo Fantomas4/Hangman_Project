@@ -38,11 +38,12 @@ def server_func():
 
         if com_array[0] == "word_request":
             print("DIAG: Server shares word with client!",file=sys.stderr)
-
             print("DIAG: SERVER WORD: ", target_word,file=sys.stderr)
-            client_connection.send(target_word.encode("ascii"))
-
-
+            ##SENDING "word_request" MESSAGE TO SERVER USING ARRAY!
+            import pickle
+            com_array = []
+            com_array.append(target_word)
+            client_connection.send(pickle.dumps(com_array))
             # client_connection.close()
 
 
@@ -61,17 +62,34 @@ def client_func():
     # connection to hostname on the port.
     s.connect((host, port))
 
-    ##SENDING MESSAGE TO SERVER USING ARRAY!
+    # #SENDING "join_game" MESSAGE TO SERVER USING ARRAY!
+    # import pickle
+    # send_msg = "join_game"
+    # com_array.append(send_msg)
+    # s.send(pickle.dumps(com_array))
+    #
+    # # Receive no more than 1024 bytes
+    # received_msg = s.recv(1024)
+    # unique_id = received_msg.decode("ascii")
+    # print("CLIENT WAS GIVEN UNIQUE ID $$$ : ",unique_id)
+    # s.close()
+
+
+    ##SENDING "word_request" MESSAGE TO SERVER USING ARRAY!
     import pickle
     send_msg = "word_request"
     com_array.append(send_msg)
     s.send(pickle.dumps(com_array))
 
     # Receive no more than 1024 bytes
-    received_msg = s.recv(1024)
-    #print(received_msg.decode("ascii"))
+    in_request = s.recv(1024)
+
+    import pickle
+    com_array = pickle.loads(in_request)
+
     s.close()
-    target_word = received_msg.decode("ascii")
+
+    target_word = com_array[0]
     menu_choice = main_game_func(6,settings,target_word)
 
     return menu_choice
@@ -95,19 +113,36 @@ def server_win_check_func():
     while True:
         client_connection, client_address = listen_socket.accept()
         print("WIN_SERVER got a WIN connection from %s" % str(client_address),file=sys.stderr)
-        request = client_connection.recv(1024)
-        request = request.decode('ascii')
-        print("Server got the WIN request: ", request,file=sys.stderr)
-        if request == "win_status":
+        in_request = client_connection.recv(1024)
+
+        #receive and DECODE array through socket
+        import pickle
+        com_array = pickle.loads(in_request)
+
+        if com_array[0] == "win_status":
             if win_status == True:
-                client_connection.send("end_game".encode('ascii'))
+                out_request = "end_game"
+
+                import pickle
+                com_array = [] #empties array?
+                com_array.append(out_request)
+                client_connection.send(pickle.dumps(com_array))
+
             elif win_status == False:
-                client_connection.send("pending_game".encode('ascii'))
-        elif request == "win":
+                out_request = "pending_game"
+
+                import pickle
+                com_array = []  # empties array?
+                com_array.append(out_request)
+                client_connection.send(pickle.dumps(com_array))
+
+        elif com_array[0] == "win":
             win_status = True
 
 ############################################################################################################
 def client_win_check_func():
+
+    com_array = []
 
     import socket
     # create a socket object
@@ -119,16 +154,24 @@ def client_win_check_func():
     # connection to hostname on the port.
     win_socket.connect((host, port))
 
+    ##SENDING "win_status" MESSAGE TO SERVER USING ARRAY!
+    import pickle
     send_msg = "win_status"
-    win_socket.send(send_msg.encode('ascii'))
-    received_msg = win_socket.recv(1024)
+    com_array.append(send_msg)
+    win_socket.send(pickle.dumps(com_array))
 
-    received_msg = received_msg.decode("ascii")
-    print("Client got answer from server: ", received_msg,file=sys.stderr)
+    received_msg = win_socket.recv(1024)
+    # receive and DECODE array through socket!
+    import pickle
+    com_array = pickle.loads(received_msg)
+
+
+    #print("Client got answer from server: ", received_msg,file=sys.stderr)
+    print("Client got answer from server using array: ", com_array[0])
 
     win_socket.close()
 
-    return received_msg
+    return com_array[0]
 ############################################################################################################
 hangman_art=[]
 for i in range(0,7):
@@ -318,6 +361,7 @@ def user_func(users):
 #################################################################
 def main_game_func(menu_choice,settings,target):
 
+    com_array = []
 
     char_found = 0
     word_print = []
@@ -493,12 +537,11 @@ def main_game_func(menu_choice,settings,target):
             # connection to hostname on the port.
             s.connect((host, port))
 
+            ##SENDING "win" MESSAGE TO SERVER USING ARRAY!
+            import pickle
             send_msg = "win"
-            s.send(send_msg.encode("ascii"))
-
-
-
-
+            com_array.append(send_msg)
+            s.send(pickle.dumps(com_array))
 
     #score = score_func(settings, target_len, gu_left)
     #print("Your score is:", score)
