@@ -1,6 +1,8 @@
 ############################################################################################################test
 def server_func():
 
+    com_array = []
+
     #thread gia server_win_check_func
     from threading import Thread
 
@@ -27,9 +29,14 @@ def server_func():
         client_connection, client_address = listen_socket.accept()
         print("Got a connection from %s" % str(client_address),file=sys.stderr)
         request = client_connection.recv(1024)
-        print("Server got the request: ",request.decode('ascii'),file=sys.stderr)
+        #print("Server got the request: ",request.decode('ascii'),file=sys.stderr)
 
-        if request.decode('ascii') == "word":
+        #receive and DECODE array through socket!
+        import pickle       #serialize array that will be send over socket
+        com_array = pickle.loads(request) #serialize array that will be send over socket
+
+
+        if com_array[0] == "word_request":
             print("DIAG: Server shares word with client!",file=sys.stderr)
 
             print("DIAG: SERVER WORD: ", target_word,file=sys.stderr)
@@ -42,6 +49,7 @@ def server_func():
 ############################################################################################################
 def client_func():
 
+    com_array = []
 
     import socket
     # create a socket object
@@ -53,8 +61,11 @@ def client_func():
     # connection to hostname on the port.
     s.connect((host, port))
 
-    send_msg = "word"
-    s.send(send_msg.encode("ascii"))
+    ##SENDING MESSAGE TO SERVER USING ARRAY!
+    import pickle
+    send_msg = "word_request"
+    com_array.append(send_msg)
+    s.send(pickle.dumps(com_array))
 
     # Receive no more than 1024 bytes
     received_msg = s.recv(1024)
@@ -66,7 +77,6 @@ def client_func():
     return menu_choice
 ############################################################################################################
 def server_win_check_func():
-
 
     import socket
 
@@ -472,7 +482,7 @@ def main_game_func(menu_choice,settings,target):
 
 
         if menu_choice == 5 or menu_choice == 6:
-            ##STELNW SIMA NIKIS STON SERVER
+            ##SEND "WIN SIGNAL" TO SERVER!
             import socket
             # create a socket object
 

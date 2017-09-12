@@ -1,3 +1,4 @@
-import sys
-read = sys.stdin.read(1)
-print("DIAG: read is: ",read)
+import random
+
+number = random.randrange(1,1000)
+print(number)
