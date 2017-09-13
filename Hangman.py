@@ -2,7 +2,7 @@
 def server_func():
 
     com_array = []
-
+    used_id = []
     #thread gia server_win_check_func
     from threading import Thread
 
@@ -23,6 +23,7 @@ def server_func():
     listen_socket.listen(5)
     print('Serving HTTP on port %s ...' % PORT,file=sys.stderr)
 
+    import random
     target_word = random.choice(word_list)
 
     while True:
@@ -36,7 +37,17 @@ def server_func():
         com_array = pickle.loads(request) #serialize array that will be send over socket
 
 
-        if com_array[0] == "word_request":
+        if com_array[0] == "join_request":
+            import random
+            unique_id = random.randrange(0,5000)
+            used_id.append(unique_id)
+
+            import pickle
+            com_array = []
+            com_array.append(unique_id)
+            client_connection.send(pickle.dumps(com_array))
+
+        elif com_array[0] == "word_request":
             print("DIAG: Server shares word with client!",file=sys.stderr)
             print("DIAG: SERVER WORD: ", target_word,file=sys.stderr)
             ##SENDING "word_request" MESSAGE TO SERVER USING ARRAY!
@@ -62,21 +73,27 @@ def client_func():
     # connection to hostname on the port.
     s.connect((host, port))
 
-    # #SENDING "join_game" MESSAGE TO SERVER USING ARRAY!
-    # import pickle
-    # send_msg = "join_game"
-    # com_array.append(send_msg)
-    # s.send(pickle.dumps(com_array))
-    #
-    # # Receive no more than 1024 bytes
-    # received_msg = s.recv(1024)
-    # unique_id = received_msg.decode("ascii")
-    # print("CLIENT WAS GIVEN UNIQUE ID $$$ : ",unique_id)
-    # s.close()
+    #SENDING "join_request" MESSAGE TO SERVER USING ARRAY!
+    import pickle
+    send_msg = "join_request"
+    com_array.append(send_msg)
+    s.send(pickle.dumps(com_array))
 
+    # Receive no more than 1024 bytes
+    in_request = s.recv(1024)
+    import pickle
+    com_array = pickle.loads(in_request)
+    unique_id = com_array[0]
+    print("CLIENT WAS GIVEN UNIQUE ID $$$ : ",unique_id)
+    #close socket
+    s.close()
 
+    #create a socket object again!
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((host, port))
     ##SENDING "word_request" MESSAGE TO SERVER USING ARRAY!
     import pickle
+    com_array = []
     send_msg = "word_request"
     com_array.append(send_msg)
     s.send(pickle.dumps(com_array))
