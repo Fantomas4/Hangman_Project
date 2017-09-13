@@ -40,6 +40,8 @@ def server_func():
         if com_array[0] == "join_request":
             import random
             unique_id = random.randrange(0,5000)
+            while unique_id in used_id:
+                unique_id = random.randrange(0, 5000)
             used_id.append(unique_id)
 
             import pickle
