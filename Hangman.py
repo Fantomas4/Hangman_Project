@@ -109,7 +109,7 @@ def client_func():
     s.close()
 
     target_word = com_array[0]
-    menu_choice = main_game_func(6,settings,target_word)
+    menu_choice = main_game_func(6,settings,target_word,username,unique_id)
 
     return menu_choice
 ############################################################################################################
@@ -340,7 +340,7 @@ hangman_art[6]="""
 class login_data(object):
 
     users_index = 0
-    login = "guest"
+    username = "guest"
 
 
 
@@ -363,7 +363,7 @@ def user_func(users):
         login_data.users_index += 1
 
         print("DIAG: USER_INDEX is: ",login_data.users_index)
-        login_data.login = name
+        login_data.username = name
         print("DIAG: name is:",name)
         users.append(name)
         print("DIAG: MPIKA SINARTISI USER_FUNC/APPEND NAME")
@@ -371,14 +371,14 @@ def user_func(users):
         name = input("Please enter your username: ")
         if name in users:
             print("Diagnostics: USER FOUND!")
-            login_data.login = name
+            login_data.username = name
 
     return
 
 
 
 #################################################################
-def main_game_func(menu_choice,settings,target):
+def main_game_func(menu_choice,settings,target,username,unique_id):
 
     com_array = []
 
@@ -556,10 +556,14 @@ def main_game_func(menu_choice,settings,target):
             # connection to hostname on the port.
             s.connect((host, port))
 
-            ##SENDING "win" MESSAGE TO SERVER USING ARRAY!
+            print("DIAG: in main_game_func winner username: ",username)
+            #SENDING "win" MESSAGE TO SERVER USING ARRAY!
+            #message format is: "win"/username/unique_id
             import pickle
-            send_msg = "win"
-            com_array.append(send_msg)
+            com_array.append("win")
+            com_array.append(username)
+            com_array.append(unique_id)
+
             s.send(pickle.dumps(com_array))
 
     #score = score_func(settings, target_len, gu_left)
@@ -577,7 +581,7 @@ def main_game_func(menu_choice,settings,target):
         print("DIAG: welcome_func apo to simeio 3!")
 
 
-        menu_choice = welcome_func(login_data.login)
+        menu_choice = welcome_func(login_data.username)
         return menu_choice
 
 
@@ -768,12 +772,11 @@ def options_func(settings):
 
 ######################################################################################
 
-
-def welcome_func(login):
+def welcome_func(username):
 
     print("     **** Welcome to the Hangman Application ****")
     print("1.Login as a user")
-    print("2.Start a new game as", login)
+    print("2.Start a new game as", username)
     print("3.Enter the options submenu.")
     print("4.Exit the application.")
     print("5.Host a multiplayer session (BETA!)")
@@ -816,6 +819,7 @@ if __name__ == '__main__':
         print("USERS FILE EXISTS")
         with open('users.txt', 'r') as saved_users:
             users = saved_users.read().splitlines()
+            print("DIAG: Users list initialized from file as: ",users)
     else:
         print("USERS FILE DOES NOT EXIST.")  ##Mono entos tou with open einai anoixto to  arxeio
 
@@ -829,10 +833,10 @@ if __name__ == '__main__':
     with open(settings[1],'r') as dictionary: #settings[1] contains the file name (name.txt)
         word_list = dictionary.read().upper().splitlines()
 
-    login = "guest"
+    username = "guest"
     print("DIAG: welcome_func apo to simeio 1!")
 
-    menu_choice=welcome_func(login_data.login)
+    menu_choice = welcome_func(login_data.username)
 
     while menu_choice != 4: ## Condition depends on amount of choices. Currently set to 4
         ##termination condition
@@ -840,7 +844,8 @@ if __name__ == '__main__':
         if menu_choice == 1:
             user_func(users)
             with open('users.txt', 'w') as saved_users:  ### SAVES USERS TO TEXT FILE!
-                for i in range(0,login_data.users_index):
+                print("DIAG: users index before write to file is: ",login_data.users_index)
+                for i in range(0,login_data.users_index + 1):
                     print("DIAG: LOOP TYPOSIS SE ARXEIO")
                     print("DIAG: users",users)
                     print("DIAG: users[i]",users[i])
@@ -851,7 +856,12 @@ if __name__ == '__main__':
             print("DIAG: welcome_func apo to simeio 4!")
 
 
-            menu_choice = welcome_func(login_data.login)
+            menu_choice = welcome_func(login_data.username)
+
+        while menu_choice == 2:  ### FOR MENU
+            target_word = random.choice(word_list)
+            menu_choice =main_game_func(2,settings,target_word,username,-1)
+            print("\n\n\n\n\n\n\n\n")
 
 
         if menu_choice == 3:
@@ -862,18 +872,11 @@ if __name__ == '__main__':
             print("DIAG: welcome_func apo to simeio 2!")
 
 
-            menu_choice = welcome_func(login_data.login)
+            menu_choice = welcome_func(login_data.username)
             with open('settings.txt', 'w') as saved_set:  ### SAVES SETTINGS TO TEXT FILE!
                 for i in range(0,set_index):
                     saved_set.write(settings[i])
                     saved_set.write("\n")
-
-
-
-        while menu_choice==2:  ### FOR MENU
-            target_word = random.choice(word_list)
-            menu_choice =main_game_func(2,settings,target_word)
-            print("\n\n\n\n\n\n\n\n")
 
         if menu_choice == 5:  ##host server
             #ektelei to arxeio toy server
@@ -883,7 +886,7 @@ if __name__ == '__main__':
             server_thread = Thread(target=server_func)
             server_thread.start()
             print("DIAG: Initializing server thread...",file=sys.stderr)
-            menu_choice=client_func()
+            menu_choice = client_func()
 
 
 
