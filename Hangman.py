@@ -51,7 +51,7 @@ def server_func():
 
         elif com_array[0] == "word_request":
             print("DIAG: Server shares word with client!",file=sys.stderr)
-            print("DIAG: SERVER WORD: ", target_word,file=sys.stderr)
+            print("DIAG: SERVER WORD: ", target_word, file=sys.stderr)
             ##SENDING "word_request" MESSAGE TO SERVER USING ARRAY!
             import pickle
             com_array = []
@@ -61,7 +61,7 @@ def server_func():
 
 
 #############################################################################################################
-def client_func():
+def client_func(username):
 
     com_array = []
 
@@ -885,13 +885,13 @@ if __name__ == '__main__':
 
             server_thread = Thread(target=server_func)
             server_thread.start()
-            print("DIAG: Initializing server thread...",file=sys.stderr)
-            menu_choice = client_func()
+            print("DIAG: Initializing server thread...", file=sys.stderr)
+            menu_choice = client_func(login_data.username)
 
 
 
         if menu_choice == 6:  ##join server
-            menu_choice = client_func()
+            menu_choice = client_func(login_data.username)
 
 
 
