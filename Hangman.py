@@ -140,11 +140,13 @@ def server_win_check_func():
 
         if com_array[0] == "win_status":
             if win_status == True:
-                out_request = "end_game"
+                #out_request = "end_game"
 
                 import pickle
                 com_array = [] #empties array?
-                com_array.append(out_request)
+                com_array.append("end_game")
+                com_array.append(winner_username)
+                com_array.append(winner_id)
                 client_connection.send(pickle.dumps(com_array))
 
             elif win_status == False:
@@ -157,6 +159,9 @@ def server_win_check_func():
 
         elif com_array[0] == "win":
             win_status = True
+            winner_username = com_array[1]
+            winner_id = com_array[2]
+            print(" Server_win_check received winner: ", winner_username,winner_id)
 
 ############################################################################################################
 def client_win_check_func():
@@ -190,7 +195,7 @@ def client_win_check_func():
 
     win_socket.close()
 
-    return com_array[0]
+    return com_array
 ############################################################################################################
 hangman_art=[]
 for i in range(0,7):
@@ -470,7 +475,7 @@ def main_game_func(menu_choice,settings,target,username,unique_id):
 
         if menu_choice == 5 or menu_choice == 6:
             import multiprocessing
-            char_queue =multiprocessing.Queue(maxsize=5) #ftiaxnw oura
+            char_queue = multiprocessing.Queue(maxsize=5) #ftiaxnw oura
 
             create_process = True #flag gia na xekinisei process MONO stin proti ektelesi tis loopas
             import time #TEMPORARY?
@@ -493,11 +498,14 @@ def main_game_func(menu_choice,settings,target,username,unique_id):
                     create_process = False
 
                 ## elegxw gia niki apo allon client
-                received_msg = client_win_check_func()
-                if received_msg == "end_game":
+
+                win_check_array = client_win_check_func()
+                print("ELAVA win_check_array[0]: ",win_check_array[0])
+                if win_check_array[0] == "end_game":
                     print("EFTASA 3")
                     print("DIAG: end_game STI LOOPA")
-                    multiplayer = 2 #stop game
+                    print("O NIKITIS ENTOPISTIKE OS: ", win_check_array[1], win_check_array[2])
+                    multiplayer = 2  #stop game
                     char_input_process.terminate()
                     break
 
@@ -528,7 +536,7 @@ def main_game_func(menu_choice,settings,target,username,unique_id):
             match_found = False
             print("\n")
         else:
-            print("*** GAME OVER! Another Client has already won! ***\n\n")
+            print("*** GAME OVER! Client", win_check_array[1], win_check_array[2], "has won the game!!! ***\n\n")
 
     ###################################################
 
@@ -556,7 +564,7 @@ def main_game_func(menu_choice,settings,target,username,unique_id):
             # connection to hostname on the port.
             s.connect((host, port))
 
-            print("DIAG: in main_game_func winner username: ",username)
+            print("DIAG: in main_game_func winner username: ", username)
             #SENDING "win" MESSAGE TO SERVER USING ARRAY!
             #message format is: "win"/username/unique_id
             import pickle
