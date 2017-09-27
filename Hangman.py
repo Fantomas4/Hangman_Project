@@ -588,9 +588,11 @@ def main_game_func(menu_choice,settings,target,username,unique_id):
         print("\n\n\n\n\n\n\n\n")
         print("DIAG: welcome_func apo to simeio 3!")
 
-
         menu_choice = welcome_func(login_data.username)
         return menu_choice
+    elif choice == "Yes":
+        print("$$$UNDER CONSTRUCTION! ")
+
 
 
 ###############################################################################################
