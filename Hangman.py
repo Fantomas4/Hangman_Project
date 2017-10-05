@@ -1,30 +1,46 @@
 ############################################################################################################test
 def server_func():
 
-    com_array = []
     used_id = []
+
     #thread gia server_win_check_func
+    import queue
+    server_win_check_queue = queue.Queue(maxsize=1)
+
     from threading import Thread
 
-    server_thread = Thread(target=server_win_check_func)
-    server_thread.start()
-
-
+    server_win_check_thread = Thread(target=server_win_check_func, args=(server_win_check_queue,) )
+    server_win_check_thread.start()
 
     import socket
 
-    HOST = socket.gethostname()
+    #HOST = socket.gethostname()
     print("DIAG: gethostname(): ", socket.gethostname(),file=sys.stderr)
     PORT = 9999
 
     listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    listen_socket.bind((HOST, PORT))
+    listen_socket.bind(('', PORT))
     listen_socket.listen(5)
     print('Serving HTTP on port %s ...' % PORT,file=sys.stderr)
 
     import random
     target_word = random.choice(word_list)
+
+    server_listening_thread = Thread(target=server_listening, args=(used_id, target_word, listen_socket))
+    server_listening_thread.start()
+
+    while True:
+        #print("DIAG: queue has<: ", server_win_check_queue.empty())
+        if server_win_check_queue.empty() != True:
+            print('trololo')
+            if server_win_check_queue.get() == "shutdown_server":
+                listen_socket.close()
+                print('server listen_socket closed!')
+                break
+
+#############################################################################################################
+def server_listening(used_id,target_word,listen_socket):
 
     while True:
         client_connection, client_address = listen_socket.accept()
@@ -58,6 +74,10 @@ def server_func():
             com_array.append(target_word)
             client_connection.send(pickle.dumps(com_array))
             # client_connection.close()
+
+
+
+
 
 
 #############################################################################################################
@@ -113,19 +133,19 @@ def client_func(username):
 
     return menu_choice
 ############################################################################################################
-def server_win_check_func():
+def server_win_check_func(com_queue):
 
     import socket
 
     win_status = False  # no client has won yet
 
-    HOST = socket.gethostname()
+    #HOST = socket.gethostname()
     print("DIAG: gethostname(): ", socket.gethostname(),file=sys.stderr)
     PORT = 9998
 
     listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    listen_socket.bind((HOST, PORT))
+    listen_socket.bind(('', PORT))
     listen_socket.listen(5)
     print('Serving WIN HTTP on port %s ...' % PORT,file=sys.stderr)
 
@@ -161,6 +181,7 @@ def server_win_check_func():
             win_status = True
             winner_username = com_array[1]
             winner_id = com_array[2]
+            com_queue.put("shutdown_server")
             print(" Server_win_check received winner: ", winner_username,winner_id)
 
 ############################################################################################################
@@ -890,11 +911,16 @@ if __name__ == '__main__':
 
         if menu_choice == 5:  ##host server
             #ektelei to arxeio toy server
-
+            import time
             from threading import Thread
 
             server_thread = Thread(target=server_func)
             server_thread.start()
+
+            # vazw kathisterisi gia na prolavei na hostarei prin prospathisei na kanei join
+            print("*** Loading ... ***")
+            time.sleep(2)
+
             print("DIAG: Initializing server thread...", file=sys.stderr)
             menu_choice = client_func(login_data.username)
 
