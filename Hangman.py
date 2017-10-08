@@ -878,8 +878,7 @@ if __name__ == '__main__':
                 print("DIAG: users index before write to file is: ",login_data.users_index)
                 for i in range(0,login_data.users_index + 1):
                     print("DIAG: LOOP TYPOSIS SE ARXEIO")
-                    print("DIAG: users",users)
-                    print("DIAG: users[i]",users[i])
+                    print("DIAG: users", users)
                     saved_users.write(users[i])
                     saved_users.write("\n")
 
